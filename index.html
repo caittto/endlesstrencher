@@ -70,7 +70,7 @@ header { padding: 2rem; background: #222; font-size: 3rem; font-weight: bold; te
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getDatabase, ref, runTransaction, onValue, get, set } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+import { getDatabase, ref, runTransaction, onValue, set, get } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCanPRoEugzKuNEs1X_YCNO3RHui8IBgpI",
@@ -96,9 +96,6 @@ const images = [
   "ft pics/ft happy.png"
 ];
 
-// Track if user already voted
-let userVoted = localStorage.getItem("userVoted");
-
 // Initialize votes in DB if missing
 get(votesRef).then(snapshot => {
   if(!snapshot.exists()){
@@ -113,19 +110,9 @@ onValue(votesRef, snapshot => {
 });
 
 function vote(index){
-  if(userVoted !== null){
-    alert("You can only vote once!");
-    return;
-  }
-
   // Increment vote in Firebase atomically
   const voteRef = ref(db, `votes/${index}`);
   runTransaction(voteRef, current => (current || 0) + 1);
-
-  // Save that this user voted
-  localStorage.setItem("userVoted", index);
-  userVoted = index;
-
   animateCard(index);
 }
 
@@ -148,11 +135,6 @@ function renderVotes(votes){
   document.getElementById("winner-title").innerText = titles[winnerIndex];
   document.getElementById("winner-votes").innerText = `Votes: ${maxVotes}`;
   document.querySelectorAll(".face-card img")[winnerIndex].style.border = "5px solid gold";
-
-  // Disable clicking if user already voted
-  if(userVoted !== null){
-    document.querySelectorAll(".face-card").forEach(card => card.style.cursor = "not-allowed");
-  }
 }
 
 window.vote = vote;
