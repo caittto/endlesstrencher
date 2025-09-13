@@ -95,40 +95,34 @@ const images = [
   "ft pics/ft happy.png"
 ];
 
-let votes = [0,0,0,0,0];
-
 // Initialize database if empty
 get(votesRef).then(snapshot => {
   if(!snapshot.exists()){
-    set(votesRef, votes);
+    set(votesRef, [0,0,0,0,0]);
   }
 });
 
-// Live updates
+// Listen for live vote updates
 onValue(votesRef, snapshot => {
   const data = snapshot.val();
   if(data){
-    votes = data;
-    renderVotes();
+    renderVotes(data);
   }
 });
 
-// Vote function using transaction
 function vote(index){
   const voteRef = ref(db, `votes/${index}`);
-  runTransaction(voteRef, current => (current || 0) + 1);
+  runTransaction(voteRef, current => (current || 0) + 1); // increment safely
   animateCard(index);
 }
 
-// Animate click
 function animateCard(index){
   const card = document.querySelectorAll(".face-card")[index];
   card.style.transform = "scale(1.25)";
   setTimeout(()=>{card.style.transform="scale(1)";},250);
 }
 
-// Render votes and winner
-function renderVotes(){
+function renderVotes(votes){
   votes.forEach((v,i)=>{
     document.getElementById(`count-${i}`).innerText = `Votes: ${v}`;
     document.querySelectorAll(".face-card img")[i].style.border = "3px solid #444";
