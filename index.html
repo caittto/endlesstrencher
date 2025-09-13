@@ -86,6 +86,7 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const votesRef = ref(db, "votes");
 
+// Titles and images
 const titles = ["Denial","Anger","Bargaining","Depression","Acceptance"];
 const images = [
   "ft pics/ft denial.png",
@@ -95,24 +96,36 @@ const images = [
   "ft pics/ft happy.png"
 ];
 
-// Initialize database if empty
+// Track if user already voted
+let userVoted = localStorage.getItem("userVoted");
+
+// Initialize votes in DB if missing
 get(votesRef).then(snapshot => {
   if(!snapshot.exists()){
     set(votesRef, [0,0,0,0,0]);
   }
 });
 
-// Listen for live vote updates
+// Listen for live updates
 onValue(votesRef, snapshot => {
-  const data = snapshot.val();
-  if(data){
-    renderVotes(data);
-  }
+  const votes = snapshot.val();
+  if(votes) renderVotes(votes);
 });
 
 function vote(index){
+  if(userVoted !== null){
+    alert("You can only vote once!");
+    return;
+  }
+
+  // Increment vote in Firebase atomically
   const voteRef = ref(db, `votes/${index}`);
-  runTransaction(voteRef, current => (current || 0) + 1); // increment safely
+  runTransaction(voteRef, current => (current || 0) + 1);
+
+  // Save that this user voted
+  localStorage.setItem("userVoted", index);
+  userVoted = index;
+
   animateCard(index);
 }
 
@@ -135,6 +148,11 @@ function renderVotes(votes){
   document.getElementById("winner-title").innerText = titles[winnerIndex];
   document.getElementById("winner-votes").innerText = `Votes: ${maxVotes}`;
   document.querySelectorAll(".face-card img")[winnerIndex].style.border = "5px solid gold";
+
+  // Disable clicking if user already voted
+  if(userVoted !== null){
+    document.querySelectorAll(".face-card").forEach(card => card.style.cursor = "not-allowed");
+  }
 }
 
 window.vote = vote;
