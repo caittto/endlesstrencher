@@ -1,0 +1,68 @@
+/* Existing styles remain, just add these media queries at the end */
+
+@media (max-width: 1024px) {
+  .stages-container {
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .face-card img {
+    width: 120px;
+    height: 120px;
+  }
+
+  .face-title {
+    font-size: 1.2rem;
+  }
+
+  .vote-count {
+    font-size: 1rem;
+  }
+
+  .arrow {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 600px) {
+  header {
+    font-size: 2rem;
+    padding: 1rem;
+  }
+
+  .stages-container {
+    flex-direction: column; /* stack faces vertically on very small screens */
+    align-items: center;
+  }
+
+  .arrow {
+    transform: rotate(90deg); /* rotate arrows to match vertical layout */
+    margin: 0.5rem 0;
+  }
+
+  .face-card {
+    min-width: 160px;
+    margin-bottom: 1rem;
+  }
+
+  .face-card img {
+    width: 140px;
+    height: 140px;
+  }
+
+  .face-title {
+    font-size: 1.2rem;
+  }
+
+  .vote-count {
+    font-size: 1rem;
+  }
+
+  .winner {
+    max-width: 90%;
+  }
+
+  .winner img {
+    width: 100%;
+  }
+}
