@@ -206,7 +206,7 @@
     ];
 
     let votes = [0,0,0,0,0];
-    let userVoted = localStorage.getItem("userVoted");
+    //let userVoted = localStorage.getItem("userVoted");
 
     // Initialize votes in database if empty (run only once)
     get(votesRef).then(snapshot => {
@@ -225,11 +225,11 @@
     });
 
     // Voting function (one vote per user)
-    function vote(index){
-      if(userVoted !== null){
-        alert("You can only vote once!");
-        return;
-      }
+    //function vote(index){
+    //  if(userVoted !== null){
+    //    alert("You can only vote once!");
+   //     return;
+   //   }
 
       // Use transaction to avoid race conditions
       runTransaction(ref(database, `votes/${index}`), (current) => {
@@ -274,3 +274,4 @@
 
 </body>
 </html>
+
