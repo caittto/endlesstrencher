@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The 5 Stages of a Trencher</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif,;
+      background: #111;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    header {
+      padding: 2rem;
+      background: #222;
+      font-size: 3rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+    }
+
+    .stages-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 2rem;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+    }
+
+    .face-card {
+      display: inline-block;
+      background: #1a1a1a;
+      border-radius: 20px;
+      padding: 1rem;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+      transition: transform 0.2s ease;
+      cursor: pointer;
+      text-align: center;
+      min-width: 160px;
+    }
+
+    .face-card:hover {
+      transform: scale(1.15);
+    }
+
+    .face-card img {
+      width: 140px;
+      height: 140px;
+      border-radius: 12px;
+      border: 3px solid #444;
+      transition: border 0.3s;
+    }
+
+    .face-title {
+      margin-top: 0.5rem;
+      font-weight: bold;
+      font-size: 1.3rem;
+    }
+
+    .vote-count {
+      margin-top: 0.3rem;
+      font-size: 1.1rem;
+    }
+
+    .arrow {
+      font-size: 2.5rem;
+      color: #ff4444;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .winner {
+      margin: 3rem auto;
+      padding: 2rem;
+      max-width: 400px;
+      background: #222;
+      border-radius: 20px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+    }
+
+    .winner img {
+      width: 100%;
+      border-radius: 12px;
+      border: 5px solid gold;
+    }
+
+    .winner h2 {
+      margin: 1rem 0 0.5rem;
+      font-size: 2rem;
+    }
+
+    #winner-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    #winner-votes {
+      font-size: 1.3rem;
+      margin-top: 0.5rem;
+    }
+  </style>
+
+  <!-- Firebase Modular SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCanPRoEugzKuNEs1X_YCNO3RHui8IBgpI",
+      authDomain: "failed-trencher.firebaseapp.com",
+      projectId: "failed-trencher",
+      storageBucket: "failed-trencher.firebasestorage.app",
+      messagingSenderId: "61633843169",
+      appId: "1:61633843169:web:e042631a24c7bf5f840ca0",
+      measurementId: "G-P0JH4Y9QY2"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    const votesRef = ref(database, 'votes');
+
+    const titles = ["Denial","Anger","Bargaining","Depression","Acceptance"];
+    const images = [
+      "ft pics/ft denial.png",
+      "ft pics/ft anger.png",
+      "ft pics/ft barga.png",
+      "ft pics/ft cry depr.png",
+      "ft pics/ft happy.png"
+    ];
+
+    let votes = [0,0,0,0,0];
+    let userVoted = localStorage.getItem("userVoted"); // null if not voted
+
+    // Initialize votes in database if not set
+    get(votesRef).then(snapshot => {
+      if (!snapshot.exists()) {
+        set(votesRef, votes);
+      }
+    });
+
+    // Listen for live updates
+    onValue(votesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        votes = data;
+        renderVotes();
+      }
+    });
+
+    function vote(index){
+      if(userVoted !== null){
+        alert("You can only vote once!");
+        return;
+      }
+      votes[index]++;
+      set(votesRef, votes); // save updated votes to Firebase
+      localStorage.setItem("userVoted", index); // mark as voted
+      userVoted = index;
+      animateCard(index);
+      renderVotes();
+    }
+
+    function renderVotes() {
+      votes.forEach((v,i)=>{
+        document.getElementById(`count-${i}`).innerText = `Votes: ${v}`;
+        document.querySelectorAll(".face-card img")[i].style.border = "3px solid #444";
+      });
+      updateWinner();
+
+      // Disable cards if user already voted
+      if(userVoted !== null){
+        document.querySelectorAll(".face-card").forEach(card => {
+          card.style.cursor = "not-allowed";
+        });
+      }
+    }
+
+    function updateWinner(){
+      let maxVotes = Math.max(...votes);
+      if(maxVotes===0) return;
+      let winnerIndex = votes.indexOf(maxVotes);
+
+      document.getElementById("winner-img").src = images[winnerIndex];
+      document.getElementById("winner-title").innerText = titles[winnerIndex];
+      document.getElementById("winner-votes").innerText = `Votes: ${maxVotes}`;
+
+      document.querySelectorAll(".face-card img")[winnerIndex].style.border = "5px solid gold";
+    }
+
+    function animateCard(index){
+      const card = document.querySelectorAll(".face-card")[index];
+      card.style.transform = "scale(1.25)";
+      setTimeout(()=>{card.style.transform="scale(1)";},250);
+    }
+
+    // Make vote() global for inline onclick
+    window.vote = vote;
+
+  </script>
+</head>
+<body>
+
+  <header>The 5 Stages of a Trencher</header>
+
+  <div class="stages-container">
+    <div class="face-card" onclick="vote(0)">
+      <img src="ft pics/ft denial.png" alt="Denial">
+      <div class="face-title">Denial</div>
+      <div class="vote-count" id="count-0">Votes: 0</div>
+    </div>
+    <div class="arrow">➡️</div>
+
+    <div class="face-card" onclick="vote(1)">
+      <img src="ft pics/ft anger.png" alt="Anger">
+      <div class="face-title">Anger</div>
+      <div class="vote-count" id="count-1">Votes: 0</div>
+    </div>
+    <div class="arrow">➡️</div>
+
+    <div class="face-card" onclick="vote(2)">
+      <img src="ft pics/ft barga.png" alt="Bargaining">
+      <div class="face-title">Bargaining</div>
+      <div class="vote-count" id="count-2">Votes: 0</div>
+    </div>
+    <div class="arrow">➡️</div>
+
+    <div class="face-card" onclick="vote(3)">
+      <img src="ft pics/ft cry depr.png" alt="Depression">
+      <div class="face-title">Depression</div>
+      <div class="vote-count" id="count-3">Votes: 0</div>
+    </div>
+    <div class="arrow">➡️</div>
+
+    <div class="face-card" onclick="vote(4)">
+      <img src="ft pics/ft happy.png" alt="Acceptance">
+      <div class="face-title">Acceptance</div>
+      <div class="vote-count" id="count-4">Votes: 0</div>
+    </div>
+  </div>
+
+  <section class="winner" id="winner-section">
+    <h2>The State of the Trenches</h2>
+    <img src="ft pics/ft denial.png" alt="Winner" id="winner-img">
+    <div id="winner-title">No votes yet</div>
+    <div id="winner-votes">Votes: 0</div>
+  </section>
+
+</body>
+</html>
