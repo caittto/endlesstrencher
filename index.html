@@ -177,10 +177,9 @@
     <div id="winner-votes">Votes: 0</div>
   </section>
 
-  <!-- Firebase Modular SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getDatabase, ref, set, get, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+    import { getDatabase, ref, runTransaction, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCanPRoEugzKuNEs1X_YCNO3RHui8IBgpI",
@@ -206,39 +205,28 @@
     ];
 
     let votes = [0,0,0,0,0];
-    //let userVoted = localStorage.getItem("userVoted");
 
-    // Initialize votes in database if empty (run only once)
-    get(votesRef).then(snapshot => {
-      if (!snapshot.exists()) {
-        set(votesRef, votes);
-      }
-    });
-
-    // Live vote updates
+    // Initialize votes if empty
     onValue(votesRef, (snapshot) => {
       const data = snapshot.val();
-      if(data){
+      if (!data) {
+        // Initialize votes array
+        for(let i=0; i<5; i++){
+          runTransaction(ref(database, `votes/${i}`), (current) => {
+            return current || 0;
+          });
+        }
+      } else {
         votes = data;
         renderVotes();
       }
     });
 
-    // Voting function (one vote per user)
-    //function vote(index){
-    //  if(userVoted !== null){
-    //    alert("You can only vote once!");
-   //     return;
-   //   }
-
-      // Use transaction to avoid race conditions
+    // Voting function (anyone can vote multiple times)
+    function vote(index){
       runTransaction(ref(database, `votes/${index}`), (current) => {
         return (current || 0) + 1;
-      }).then(() => {
-        userVoted = index;
-        localStorage.setItem("userVoted", index);
       });
-
       animateCard(index);
     }
 
@@ -262,11 +250,14 @@
       document.getElementById("winner-title").innerText = titles[winnerIndex];
       document.getElementById("winner-votes").innerText = `Votes: ${maxVotes}`;
       document.querySelectorAll(".face-card img")[winnerIndex].style.border = "5px solid gold";
+    }
 
-      // Disable cards if user voted
-      if(userVoted !== null){
-        document.querySelectorAll(".face-card").forEach(card => card.style.cursor = "not-allowed");
-      }
+    // Listen to live updates and re-render votes
+    for(let i=0;i<5;i++){
+      onValue(ref(database, `votes/${i}`), (snapshot)=>{
+        votes[i] = snapshot.val();
+        renderVotes();
+      });
     }
 
     window.vote = vote;
@@ -274,4 +265,3 @@
 
 </body>
 </html>
-
