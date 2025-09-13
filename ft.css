@@ -1,68 +1,180 @@
-/* Existing styles remain, just add these media queries at the end */
-
-@media (max-width: 1024px) {
-  .stages-container {
-    gap: 1rem;
-    padding: 1rem;
-  }
-
-  .face-card img {
-    width: 120px;
-    height: 120px;
-  }
-
-  .face-title {
-    font-size: 1.2rem;
-  }
-
-  .vote-count {
-    font-size: 1rem;
-  }
-
-  .arrow {
-    font-size: 2rem;
-  }
+body {
+  font-family: Arial, sans-serif;
+  background: #111;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+  text-align: center;
 }
 
-@media (max-width: 600px) {
+header {
+  padding: 2rem 1rem;
+  background: #222;
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* Container for stages */
+.stages-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+/* Face cards */
+.face-card {
+  background: #1a1a1a;
+  border-radius: 20px;
+  padding: 1rem;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.2s ease;
+  flex: 0 1 140px; /* allow shrinking on small screens */
+}
+
+.face-card:hover {
+  transform: scale(1.1);
+}
+
+.face-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 3px solid #444;
+  max-width: 140px;
+}
+
+.face-title {
+  margin-top: 0.5rem;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.vote-count {
+  margin-top: 0.3rem;
+  font-size: 1rem;
+}
+
+/* Arrows */
+.arrow {
+  font-size: 2rem;
+  color: #ff4444;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Winner section */
+.winner {
+  margin: 2rem auto;
+  padding: 1rem;
+  max-width: 90%;
+  background: #222;
+  border-radius: 20px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+}
+
+.winner img {
+  width: 100%;
+  border-radius: 12px;
+  border: 5px solid gold;
+}
+
+.winner h2 {
+  margin: 1rem 0 0.5rem;
+  font-size: 1.8rem;
+}
+
+#winner-title {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+#winner-votes {
+  font-size: 1.2rem;
+  margin-top: 0.5rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
   header {
     font-size: 2rem;
     padding: 1rem;
   }
 
   .stages-container {
-    flex-direction: column; /* stack faces vertically on very small screens */
-    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
   }
 
   .arrow {
-    transform: rotate(90deg); /* rotate arrows to match vertical layout */
+    transform: rotate(90deg);
     margin: 0.5rem 0;
   }
 
   .face-card {
-    min-width: 160px;
-    margin-bottom: 1rem;
+    flex: 0 1 70%;
+    max-width: 250px;
   }
 
   .face-card img {
-    width: 140px;
-    height: 140px;
+    max-width: 100%;
   }
 
   .face-title {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
   }
 
   .vote-count {
     font-size: 1rem;
   }
 
-  .winner {
-    max-width: 90%;
+  .winner h2 {
+    font-size: 1.5rem;
   }
 
-  .winner img {
-    width: 100%;
+  #winner-title {
+    font-size: 1.2rem;
+  }
+
+  #winner-votes {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  header {
+    font-size: 1.8rem;
+    padding: 0.5rem;
+  }
+
+  .face-card {
+    flex: 0 1 90%;
+    max-width: 220px;
+  }
+
+  .arrow {
+    font-size: 1.5rem;
+  }
+
+  .winner {
+    padding: 0.5rem;
+  }
+
+  .winner h2 {
+    font-size: 1.3rem;
+  }
+
+  #winner-title {
+    font-size: 1.1rem;
+  }
+
+  #winner-votes {
+    font-size: 1rem;
   }
 }
