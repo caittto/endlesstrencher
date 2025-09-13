@@ -5,20 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ENDLESS CYCLE</title>
 <style>
-  body { font-family: 'Times New Roman', Times, serif; background: #111; color: #fff; margin: 0; padding: 0; text-align: center; }
-  header { padding: 2rem; background: #222; font-size: 3rem; font-weight: bold; text-transform: uppercase; letter-spacing: 3px; }
-  .stages-container { display: flex; justify-content: center; align-items: center; gap: 1.5rem; padding: 2rem; flex-wrap: nowrap; overflow-x: auto; }
-  .face-card { display: inline-block; background: #1a1a1a; border-radius: 20px; padding: 1rem; box-shadow: 0 6px 14px rgba(0,0,0,0.6); transition: transform 0.2s ease; cursor: pointer; text-align: center; min-width: 160px; }
-  .face-card:hover { transform: scale(1.15); }
-  .face-card img { width: 140px; height: 140px; border-radius: 12px; border: 3px solid #444; transition: border 0.3s; }
-  .face-title { margin-top: 0.5rem; font-weight: bold; font-size: 1.3rem; }
-  .vote-count { margin-top: 0.3rem; font-size: 1.1rem; }
-  .arrow { font-size: 2.5rem; color: #ff4444; display: inline-block; vertical-align: middle; }
-  .winner { margin: 3rem auto; padding: 2rem; max-width: 400px; background: #222; border-radius: 20px; box-shadow: 0 6px 14px rgba(0,0,0,0.6); }
-  .winner img { width: 100%; border-radius: 12px; border: 5px solid gold; }
-  .winner h2 { margin: 1rem 0 0.5rem; font-size: 2rem; }
-  #winner-title { font-size: 1.5rem; font-weight: bold; }
-  #winner-votes { font-size: 1.3rem; margin-top: 0.5rem; }
+body { font-family: 'Times New Roman', Times, serif; background: #111; color: #fff; margin: 0; padding: 0; text-align: center; }
+header { padding: 2rem; background: #222; font-size: 3rem; font-weight: bold; text-transform: uppercase; letter-spacing: 3px; }
+.stages-container { display: flex; justify-content: center; align-items: center; gap: 1.5rem; padding: 2rem; flex-wrap: nowrap; overflow-x: auto; }
+.face-card { display: inline-block; background: #1a1a1a; border-radius: 20px; padding: 1rem; box-shadow: 0 6px 14px rgba(0,0,0,0.6); transition: transform 0.2s ease; cursor: pointer; text-align: center; min-width: 160px; }
+.face-card:hover { transform: scale(1.15); }
+.face-card img { width: 140px; height: 140px; border-radius: 12px; border: 3px solid #444; transition: border 0.3s; }
+.face-title { margin-top: 0.5rem; font-weight: bold; font-size: 1.3rem; }
+.vote-count { margin-top: 0.3rem; font-size: 1.1rem; }
+.arrow { font-size: 2.5rem; color: #ff4444; display: inline-block; vertical-align: middle; }
+.winner { margin: 3rem auto; padding: 2rem; max-width: 400px; background: #222; border-radius: 20px; box-shadow: 0 6px 14px rgba(0,0,0,0.6); }
+.winner img { width: 100%; border-radius: 12px; border: 5px solid gold; }
+.winner h2 { margin: 1rem 0 0.5rem; font-size: 2rem; }
+#winner-title { font-size: 1.5rem; font-weight: bold; }
+#winner-votes { font-size: 1.3rem; margin-top: 0.5rem; }
 </style>
 </head>
 <body>
@@ -70,7 +70,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getDatabase, ref, runTransaction, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+import { getDatabase, ref, runTransaction, onValue, get, set } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCanPRoEugzKuNEs1X_YCNO3RHui8IBgpI",
@@ -83,8 +83,8 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
-const votesRef = ref(database, 'votes');
+const db = getDatabase(app);
+const votesRef = ref(db, "votes");
 
 const titles = ["Denial","Anger","Bargaining","Depression","Acceptance"];
 const images = [
@@ -97,8 +97,15 @@ const images = [
 
 let votes = [0,0,0,0,0];
 
-// Listen for the entire votes array
-onValue(votesRef, (snapshot) => {
+// Initialize database if empty
+get(votesRef).then(snapshot => {
+  if(!snapshot.exists()){
+    set(votesRef, votes);
+  }
+});
+
+// Live updates
+onValue(votesRef, snapshot => {
   const data = snapshot.val();
   if(data){
     votes = data;
@@ -106,16 +113,14 @@ onValue(votesRef, (snapshot) => {
   }
 });
 
-// Vote function
+// Vote function using transaction
 function vote(index){
-  const voteRef = ref(database, `votes/${index}`);
-  runTransaction(voteRef, (current) => {
-    return (current || 0) + 1;
-  });
+  const voteRef = ref(db, `votes/${index}`);
+  runTransaction(voteRef, current => (current || 0) + 1);
   animateCard(index);
 }
 
-// Animate card click
+// Animate click
 function animateCard(index){
   const card = document.querySelectorAll(".face-card")[index];
   card.style.transform = "scale(1.25)";
@@ -130,9 +135,8 @@ function renderVotes(){
   });
 
   const maxVotes = Math.max(...votes);
-  if(maxVotes === 0) return;
+  if(maxVotes===0) return;
   const winnerIndex = votes.indexOf(maxVotes);
-
   document.getElementById("winner-img").src = images[winnerIndex];
   document.getElementById("winner-title").innerText = titles[winnerIndex];
   document.getElementById("winner-votes").innerText = `Votes: ${maxVotes}`;
